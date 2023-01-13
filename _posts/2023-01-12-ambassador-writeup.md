@@ -2,12 +2,13 @@
 title: Ambassador Writeup
 categories: [HTB, linux]
 tags: [nmap, lfi, consul]
+pin: true
 image:
   path: https://cybersaradiyel.com/content/images/2022/12/Ambassador-min-crop-1.png
   alt: hackthebox ambassador
 ---
 
-# enumeration
+## enumeration
 
 It is recommended to run a `rustscan` scan as it is a fast and reliable tool for performing `network reconnaissance`. It's a good practice to use this tool in order to gather information about the target's *open ports* and *services*.
 
@@ -142,12 +143,92 @@ Grafana allows you to query, visualize, alert on, and understand your metrics no
 
  So i tried bruteforcing the login with the default user (`mysql`) and with the metasploit `auxiliary/scanner/mysql/mysql_login` module, but nothing, we need more information, maybe we need a user?
 
- Next one in the list is port 80 that actually catched my eye's attention due to the intresting name it had.
+ Next one in the list is port `80` that actually catched my eye's attention due to the intresting name it had.
 
  let's see...
 
+ okay it seems to be a developement server but nothing stands out.
+
+Based on this, i decided to run a `nikto` scan to further enumerate the webpage for potential vulnerabilities.
+
+> `Nikto` is an open-source web server scanner that is used to identify potential vulnerabilities in web servers. It can be used to detect a wide range of vulnerabilities including outdated software versions, misconfigurations, and potentially dangerous files or programs.
+
+```bash
+nikto -h 10.129.218.98
+
+- Nikto v2.1.5
+---------------------------------------------------------------------------
++ Target IP:          10.129.218.98
++ Target Hostname:    10.129.218.98
++ Target Port:        80
++ Start Time:         2022-10-05 18:50:24 (GMT2)
+---------------------------------------------------------------------------
++ Server: Apache/2.4.41 (Ubuntu)
++ Server leaks inodes via ETags, header found with file /, fields: 0xe46 0x5e7a7c4652f79 
++ The anti-clickjacking X-Frame-Options header is not present.
++ No CGI Directories found (use '-C all' to force check all possible dirs)
++ IP address found in the 'location' header. The IP is "127.0.1.1".
++ OSVDB-630: IIS may reveal its internal or real IP in the Location header via a request to the /images directory. The value is "http://127.0.1.1/images/".
++ Allowed HTTP Methods: GET, POST, OPTIONS, HEAD 
++ OSVDB-3092: /sitemap.xml: This gives a nice listing of the site content.
++ OSVDB-3268: /images/: Directory indexing found.
++ OSVDB-3268: /images/?pattern=/etc/*&sort=name: Directory indexing found.
++ 6544 items checked: 0 error(s) and 8 item(s) reported on remote host
++ End Time:           2022-10-05 18:55:56 (GMT2) (332 seconds)
+---------------------------------------------------------------------------
++ 1 host(s) tested
+
+```
 
 
+intresting we found the `sitemap.xml` file, for those who don't know what it is, it's basically a xml file that lists out all the files exposed on the webpage.
+
+it's very important since it can prevent you from using other enumeration tools like `feroxbuster` or `gobuster` to bruteforce directories.
 
 
+**Here is sitemap.xml**
+
+```xml
+<urlset>
+<url>
+<loc>https://example.org/</loc>
+<lastmod>2022-03-10T19:01:57+00:00</lastmod>
+</url>
+<url>
+<loc>https://example.org/posts/</loc>
+<lastmod>2022-03-10T19:01:57+00:00</lastmod>
+</url>
+<url>
+<loc>
+https://example.org/posts/welcome-to-the-ambassador-development-server/
+</loc>
+<lastmod>2022-03-10T19:01:57+00:00</lastmod>
+</url>
+<url>
+<loc>https://example.org/categories/</loc>
+</url>
+<url>
+<loc>https://example.org/tags/</loc>
+</url>
+</urlset>
+```
+
+With the information gathered from the this file we can now proceed to search for vulnerabilities and potentially interesting files on the target page.
+
+**After some time, i noticed this intresting welcome post:**
+
+```markdown
+**Welcome to the Ambassador Development Server**
+March 10, 2022
+
+Hi there! This server exists to provide developers at Ambassador with a standalone development environment. When you start as a developer at Ambassador, you will be assigned a development server of your own to use.
+
+**Connecting to this machine**
+
+Use the `developer` account to SSH, DevOps will give you the password.
+```
+
+This welcome post provides valuable information about the purpose and setup of the development server. I also attempted to connect to the server using the developer account by using common passwords, but without success.
+
+So i decided to move on to the next port: `3000`
 
