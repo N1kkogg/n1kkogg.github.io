@@ -2,7 +2,7 @@
 title: Ambassador Writeup
 categories: [HTB, linux]
 tags: [nmap, lfi, consul]
-pin: true
+pin: false
 image:
   path: https://cybersaradiyel.com/content/images/2022/12/Ambassador-min-crop-1.png
   alt: hackthebox ambassador
