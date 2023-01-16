@@ -343,7 +343,11 @@ get to check for other subdomains `/etc/apache2/sites-available/000-default.conf
 
 we can forcefully browse the file if the lfi does not work to load it
 
-**!!TRY RFI!!**
+**PATH TRAVERSAL ON SUDO -L 
+(ALL) /usr/bin/node /usr/local/scripts/*.js 
+this is vulnerable for example**
+
+**!!TRY RFI!!** smb:///
 
 ### bypassing LFI filters
 
@@ -545,3 +549,6 @@ hex encoded IP ADDRESS
 
 
 ## nosql injection
+
+exiftool pdf files to get generator
+IFRAME PDF EMBED FILES <iframe src=file:///etc/passwd width=100%></iframe>
