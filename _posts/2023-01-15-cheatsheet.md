@@ -552,3 +552,5 @@ hex encoded IP ADDRESS
 
 exiftool pdf files to get generator
 IFRAME PDF EMBED FILES <iframe src=file:///etc/passwd width=100%></iframe>
+
+## type confusion
