@@ -542,3 +542,6 @@ HTTPServer(("0.0.0.0", 8081), Redirect).serve_forever()
 ipv6 url might bypass url block
 
 hex encoded IP ADDRESS
+
+
+## nosql injection
