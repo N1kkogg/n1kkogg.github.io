@@ -357,6 +357,9 @@ this is vulnerable for example**
 
 **!!TRY RFI!!** smb:///
 
+**werkzeug console pin generation with lfi!
+https://book.hacktricks.xyz/network-services-pentesting/pentesting-web/werkzeug**
+
 ### bypassing LFI filters
 
 `../`
