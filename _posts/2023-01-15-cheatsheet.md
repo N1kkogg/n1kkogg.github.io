@@ -129,6 +129,8 @@ arp scan network
 
 find .git directory, backup file, directory listing and other intresting files!
 
+if i can't access a file with a GET request we can try to do a POST request!!
+
 ### gobuster 
 
 **USEFUL WORDLISTS:**
