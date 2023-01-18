@@ -349,6 +349,8 @@ get to check for other subdomains `/etc/apache2/sites-available/000-default.conf
 
 /etc/motd
 
+/etc/hostname
+
 we can forcefully browse the file if the lfi does not work to load it
 
 **PATH TRAVERSAL ON SUDO -L 
@@ -792,3 +794,5 @@ we can intercept auth if a program tries to do it (tcpdump/wireshark) or open li
 **look for doas program** and for /usr/local/etc/doas.conf (basically a `sudo -l`)
 
 backup files in unix have a .bak extension or a tilde(~) at the end of the file 
+
+always check **`sudo`** version
