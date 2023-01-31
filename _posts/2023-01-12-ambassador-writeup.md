@@ -1,11 +1,17 @@
 ---
 title: Ambassador Writeup
-categories: [HTB, linux]
-tags: [nmap, lfi, consul]
+categories:
+  - HTB
+  - linux
+tags:
+  - nmap
+  - lfi
+  - consul
 pin: false
 image:
-  path: https://cybersaradiyel.com/content/images/2022/12/Ambassador-min-crop-1.png
+  path: 'https://cybersaradiyel.com/content/images/2022/12/Ambassador-min-crop-1.png'
   alt: hackthebox ambassador
+published: true
 ---
 
 ## enumeration
@@ -335,4 +341,41 @@ i used these credentials to access the panel and it worked!
 
 ## grafana panel and mysql access
 
-at first glance, i tought i had to exfiltrate some files trough the grafana panel but after some time i came to the conclusion that i must be missing something
+at first glance, i tought i had to exfiltrate some files trough the grafana panel due to a path leak of some csv files but after some time i came to the conclusion that i must be missing something.
+
+grafana, has a local database saved in `/var/lib/grafana/grafana.db`, which contains users and hashed passwords. I didn't write it in my notes, but i'm pretty sure i tried to crack them without success.
+
+After a bit, the following information was found in the data_source table:
+
+```
+Username: grafana
+Database: grafana
+Password: dontStandSoCloseToMe63221!
+```
+
+By using this credentials with the mysql database open at port 3306, we are able to login, also tried ssh password reuse, but without success.
+
+here's a list of the database i found by executing the command `show databases;` in the mysql shell
+
+```
++--------------------+
+| Database           |
++--------------------+
+| grafana            |
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
+| whackywidget       |
++--------------------+
+```
+
+Here we find an intresting database called `whackywidget` in which we find a base64 encoded password that we will later use for ssh 
+
+```
++-----------+------------------------------------------+
+| user      | pass                                     |
++-----------+------------------------------------------+
+| developer | YW5FbmdsaXNoTWFuSW5OZXdZb3JrMDI3NDY4Cg== |
++-----------+------------------------------------------+
+```
