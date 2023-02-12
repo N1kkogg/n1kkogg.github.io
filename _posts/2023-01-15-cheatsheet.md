@@ -127,6 +127,9 @@ arp scan network
 
 ## DIRECTORY BRUTEFORCING
 
+try special headers like X-Forwarded-For 
+https://book.hacktricks.xyz/network-services-pentesting/pentesting-web/special-http-headers
+
 find .git directory, backup file, directory listing and other intresting files!
 
 if i can't access a file with a GET request we can try to do a POST request!!
