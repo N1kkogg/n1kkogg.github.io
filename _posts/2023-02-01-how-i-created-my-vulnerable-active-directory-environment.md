@@ -4,7 +4,7 @@ categories:
   - projects
 tags:
   - active directory
-  - vulnerable AD
+  - vulnad
 pin: false
 image:
   path: 'https://n1kkogg.github.io/assets/img/image.png'
@@ -14,4 +14,3 @@ published: false
 
 # prologue
 
-everyone should be ha
