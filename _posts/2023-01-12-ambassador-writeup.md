@@ -9,7 +9,7 @@ tags:
   - consul
 pin: false
 image:
-  path: 'https://cybersaradiyel.com/content/images/2022/12/Ambassador-min-crop-1.png'
+  path: 'https://miro.medium.com/v2/resize:fit:1400/1*lf069hvkjX4ZuOkJqrGBLg.png'
   alt: hackthebox ambassador
 published: true
 ---
