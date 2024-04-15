@@ -9,7 +9,7 @@ pin: false
 image:
   path: 'https://n1kkogg.github.io/assets/img/image.png'
   alt: vulnad
-published: true
+published: false
 ---
 
 # prologue
