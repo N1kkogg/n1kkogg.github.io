@@ -1,8 +1,13 @@
 ---
-title: maki cheatsheet 
-categories: [cheatsheet, linux]
-tags: [nmap, lfi, sqli]
-pin: true
+title: maki cheatsheet
+categories:
+  - cheatsheet
+  - linux
+tags:
+  - nmap
+  - lfi
+  - sqli
+pin: false
 ---
 
 ## SCANNING
