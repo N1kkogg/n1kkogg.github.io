@@ -1,8 +1,7 @@
 ---
 title: maki cheatsheet
 categories:
-  - cheatsheet
-  - linux
+  - cheatsheets
 tags:
   - nmap
   - lfi
