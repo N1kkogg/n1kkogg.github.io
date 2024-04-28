@@ -21,7 +21,7 @@ makider@parrot~# wall 'have fun ^_^'
 ```
 
 <script src="https://tryhackme.com/badge/407605"></script>
-<img src="https://www.hackthebox.com/badge/image/1017700"></img>
+<img src="https://www.hackthebox.com/badge/image/1017700" alt="htb badge"></img>
 
 
 *Here are my socials:*
