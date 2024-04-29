@@ -11,6 +11,15 @@ image:
   alt: cyber apocalypse 2024 cert
 published: true
 ---
+# prologue & review
+
+overall really fun and entrataining ctf, really good difficulty curve and quality :)) 
+
+we got 106th place out of 5693 teams
+
+I only did the writeups for some of the "harder" challenges because some were very easy and not writeup worth.
+
+anyways here are the writeups!
 
 # misc
 ## unbreakable
@@ -268,3 +277,53 @@ Register-ScheduledTask -TaskName "0r3d_1n_7h3_h34dqu4r73r5}" -Action $action -Tr
 ```
 
 done!
+
+# web
+
+## testimonal 
+
+solved by Kibov and me
+
+chall files:
+[web_testimonial.zip](https://github.com/ResetSec/HTB-Cyber-Apocalypse-2024/raw/main/web/testimonial/web_testimonial.zip)
+
+this webserver is written in go
+
+in this webserver you can send testimonials with your name
+
+after a bit of looking around i found out that your name gets written as the file name containing your testimonial in a folder in the file system. 
+
+This might be a arbitrary write.
+
+but the input is unfortunately sanitized with this function
+
+```go
+func (c *Client) SendTestimonial(customer, testimonial string) error {
+    ctx := context.Background()
+    // Filter bad characters.
+    for _, char := range []string{"/", "\\", ":", "*", "?", "\"", "<", ">", "|", "."} {
+        customer = strings.ReplaceAll(customer, char, "")
+    }
+
+    _, err := c.SubmitTestimonial(ctx, &pb.TestimonialSubmission{Customer: customer, Testimonial: testimonial})
+    return err
+}
+```
+
+after further looking around we found out that the server communicates to a grpc server.
+
+we can just directly communicate to the grpc server thus bypassing the filter.
+
+to do that we used the google grpc python module.
+
+then we modified the username to be ../../view/home/index.templ
+
+and the testimonial to be the whole index.templ with some code the include the flag like this /flag*
+
+![testimonial win](/assets/img/testimonial.png)
+
+and we did it!
+
+`HTB{w34kly_t35t3d_t3mplate5}`
+
+ty for reading! <3
