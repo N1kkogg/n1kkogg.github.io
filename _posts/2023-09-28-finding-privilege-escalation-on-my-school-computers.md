@@ -1,5 +1,5 @@
 ---
-title: how i found a privilege escalation in my school's computers
+title: how i found a privilege escalation in my university's computers
 categories:
   - research
 tags:
