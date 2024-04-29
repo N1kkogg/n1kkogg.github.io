@@ -5,6 +5,9 @@ categories:
 tags:
   - cyber-apocalypse
   - HTB
+  - misc
+  - forensics
+  - web
 pin: false
 image:
   path: /assets/img/cyber-apocalypse2024-cert.png
@@ -325,5 +328,7 @@ and the testimonial to be the whole index.templ with some code the include the f
 and we did it!
 
 `HTB{w34kly_t35t3d_t3mplate5}`
+
+# prologue
 
 ty for reading! <3
