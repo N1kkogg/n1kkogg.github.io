@@ -7,6 +7,7 @@ tags:
   - nmap
   - lfi
   - consul
+  - HTB
 pin: false
 image:
   path: 'https://miro.medium.com/v2/resize:fit:1400/1*lf069hvkjX4ZuOkJqrGBLg.png'
