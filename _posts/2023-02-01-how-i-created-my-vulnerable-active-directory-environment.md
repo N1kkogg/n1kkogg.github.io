@@ -5,7 +5,7 @@ categories:
 tags:
   - active directory
   - vulnad
-pin: true
+pin: false
 image:
   path: 'https://n1kkogg.github.io/assets/img/image.png'
   alt: vulnad
