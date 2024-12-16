@@ -5,7 +5,7 @@ order: 4
 
 # Hi, I am Makider
 
-I am a `cybersecurity enthusiast` who **absolutely loves** hacking and IT. I'm at my first year of Computer engineering in university and in my free time i like to *study* and *work* to improve my `skills`.
+I am a `cybersecurity researcher` who **absolutely loves** hacking and IT. I'm at my second year of Computer science in university and in my free time i like to *study* and *work* to improve my `skills`.
 
 In this `space`, I will document the challenges I attempt and *solve*, the projects I *undertake*, and share some interesting `tips` and `tricks` that i learned along the way!
 
