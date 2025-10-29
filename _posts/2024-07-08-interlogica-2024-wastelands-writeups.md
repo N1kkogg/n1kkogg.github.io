@@ -7,7 +7,7 @@ tags:
   - fullpwn
   - stego
   - web
-pin: true
+pin: false
 image:
   path: /assets/img/Wastelands_participation_certificate_8th_place.png
   alt: wastelangs participation cert

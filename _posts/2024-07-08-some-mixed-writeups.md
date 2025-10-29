@@ -7,7 +7,7 @@ tags:
   - forensics
   - web
   - fullpwn
-pin: true
+pin: false
 image:
   path: /assets/img/ctfawesome.jpg
   alt: ctfs are awesome!!!
