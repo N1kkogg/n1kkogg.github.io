@@ -33,16 +33,16 @@ github:
   username: N1kkogg             # change to your github username
 
 twitter:
-  username: makider            # change to your twitter username
+  username: makid3r            # change to your twitter username
 
 social:
   # Change to your full name.
   # It will be displayed as the default author of the posts and the copyright owner in the Footer
   name: makider 
-  email: makider@gmail.com             # change to your email address
+  email: makid3r@gmail.com             # change to your email address
   links:
     # The first element serves as the copyright owner's link
-    - https://twitter.com/makider      # change to your twitter homepage
+    - https://twitter.com/makid3r      # change to your twitter homepage
     - https://github.com/N1kkogg       # change to your github homepage
     # Uncomment below to add more social links
     # - https://www.facebook.com/username
