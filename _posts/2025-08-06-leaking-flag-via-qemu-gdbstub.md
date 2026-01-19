@@ -163,7 +163,7 @@ so we know that the heap base is: `0x55a61f57d000`
 
 Once both are known, the exact address backing `qXfer:features:read` responses becomes predictable.
 
-![qsecurebyrejection_heap](https://n1kkogg.github.io/assets/img/qsecurebyrejection_heap.png)
+![qsecurebyrejection_heap](https://n1kkogg.github.io/assets/img/qsecurebyrejection_heap.PNG)
 
 From there, we can start building our POC:
 
@@ -288,7 +288,7 @@ def pwn():
 # pwndbg --command=./exploit.py -ex 'py pwn()'
 ```
 
-![qsecurebyrejection_flag](https://n1kkogg.github.io/assets/img/qsecurebyrejection_flag.png)
+![qsecurebyrejection_flag](https://n1kkogg.github.io/assets/img/qsecurebyrejection_flag.PNG)
 
 ## looking back + the intended solution
 
